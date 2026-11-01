@@ -1,7 +1,7 @@
 import TextureKey from '../consts/texture-key'
 
 export default class Enemy extends Phaser.GameObjects.Container {
-  private nextJumpY = 0
+  private nextJumpAt = 0
   private sprite: Phaser.GameObjects.Image
   private _pseudo: string
   private pseudoText: Phaser.GameObjects.BitmapText
@@ -17,13 +17,17 @@ export default class Enemy extends Phaser.GameObjects.Container {
     this.add(this.sprite)
 
     scene.physics.add.existing(this)
-    const body = this.body as Phaser.Physics.Arcade.Body
-    body.setSize(this.sprite.displayWidth, this.sprite.displayHeight)
-    body.setOffset(-this.sprite.width / 2, -this.sprite.height / 2)
+    this.syncBody()
     this.setNextJumpY()
 
     this.pseudoText = scene.add.bitmapText(0, -48, TextureKey.Font, '', 16).setOrigin(0.5)
     this.add(this.pseudoText)
+  }
+
+  private syncBody() {
+    const body = this.body as Phaser.Physics.Arcade.Body
+    body.setSize(this.sprite.width, this.sprite.height)
+    body.setOffset(-this.sprite.width / 2, -this.sprite.height / 2)
   }
 
   get color() {
@@ -33,6 +37,7 @@ export default class Enemy extends Phaser.GameObjects.Container {
   set color(color: number) {
     this._color = color
     this.sprite.setFrame(`subs/sub${color}.png`)
+    this.syncBody()
   }
 
   get pseudo() {
@@ -45,21 +50,22 @@ export default class Enemy extends Phaser.GameObjects.Container {
   }
 
   update() {
-    // Jump
-    if (this.y >= this.nextJumpY) {
-      this.jump()
-    }
+    const body = this.body as Phaser.Physics.Arcade.Body
+    if (!body || !body.enable || this.scene.physics.world.isPaused) return
+
+    const grounded = body.blocked.down || body.touching.down
+    if (grounded && this.scene.time.now >= this.nextJumpAt) this.jump()
 
     if (this.x < 0 || this.x > this.scene.scale.width || this.y < 0 || this.y > this.scene.scale.height) {
-      // Out of bounds
       this.setActive(false)
       this.setVisible(false)
-      this.destroy()
+      body.enable = false
+      this.scene.events.emit('enemy-lost', this)
     }
   }
 
   setNextJumpY() {
-    this.nextJumpY = Phaser.Math.Between(920, 1160)
+    this.nextJumpAt = this.scene.time.now + Phaser.Math.Between(150, 900)
   }
 
   jump() {
@@ -76,7 +82,8 @@ export default class Enemy extends Phaser.GameObjects.Container {
       alpha: 0,
       ease: 'Power1',
       onComplete: () => {
-        this.destroy()
+        this.setActive(false)
+        this.setVisible(false)
       },
     })
   }

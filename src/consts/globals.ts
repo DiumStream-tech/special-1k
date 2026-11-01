@@ -1,3 +1,9 @@
 export const TILE_SIZE = 64
 export const TILE_OVERLAP_OFFSET = 4
-export const ARROW_SPEED = 2000
+export const ARROW_SPEED = 2800
+export const MAX_ENEMIES = 100
+export const RESPAWN_DELAY_MIN = 1500
+export const RESPAWN_DELAY_MAX = 4000
+export const SHOOT_COOLDOWN_MS = 120
+export const DEFAULT_MUSIC_VOLUME = 0.15
+export const DEFAULT_SFX_VOLUME = 0.25

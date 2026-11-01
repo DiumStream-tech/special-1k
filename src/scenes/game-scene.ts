@@ -1,525 +1,41 @@
-import { ARROW_SPEED, TILE_OVERLAP_OFFSET, TILE_SIZE } from '../consts/globals'
+import {
+  ARROW_SPEED,
+  MAX_ENEMIES,
+  RESPAWN_DELAY_MAX,
+  RESPAWN_DELAY_MIN,
+  SHOOT_COOLDOWN_MS,
+  TILE_OVERLAP_OFFSET,
+  TILE_SIZE,
+} from '../consts/globals'
 import SceneKey from '../consts/scene-key'
 import TextureKey from '../consts/texture-key'
+import { randomCom } from '../data/coms'
+import { level } from '../data/level'
+import { tilesMatch } from '../data/tiles'
 import Arrow from '../prefabs/arrow'
 import Enemy from '../prefabs/enemy'
+import SettingsMenu from '../systems/settings-menu'
+import SoundManager from '../systems/sound-manager'
 
 const colors = [0xffb600, 0xfc5c65, 0x9179ff, 0x37d98c]
-const coms = [
-  'robotinformatif2849',
-  'Albidcg',
-  'Decap_four',
-  'lohangeek',
-  'Paulvoc',
-  '3ps1ll0n',
-  'Anis-gv8gx',
-  'ReymonYtclips',
-  'Tech_and_Hack',
-  'LeonViot-zu2zv',
-  'underscore-y4g',
-  'Mabij3945',
-  'Superboss-jw2zj',
-  'XyJu',
-  'viber.official_',
-  'MA_VES',
-  'goldedfox',
-  'SnoopMarc0805',
-  'dymingenierie3953',
-  'KlemTGX',
-  'GamerXShadowX',
-  'suS-pectre',
-  'eddylegend2504',
-  'youssoufmamane1202',
-  'tariteur9113',
-  'Silver_U',
-  'spongeeeman',
-  'NatCode2',
-  'malanthrond7521',
-  'StayAveryx',
-  'swt-jeuvideo7516',
-  'Olympe85',
-  'picascience8562',
-  'jmc951',
-  'Cocorigolo-vd1in',
-  'Zeuslyy',
-  'ElRealGoblino',
-  'Lepro3',
-  'du84boss',
-  'LixyyLePanda',
-  'Goladino',
-  'Petitloupbrun',
-  'fafounet6243',
-  '1lebel131',
-  'QuickkPod',
-  'Landee',
-  'Aka_Mao_',
-  'minepluie',
-  'WhoStoleMyFreakingUsername',
-  'LRO-x6l',
-  'flowwolf16',
-  'MMX-multi-gaming',
-  'cedricmarquet2797',
-  'Écrivain-SYG',
-  'Lemyx.',
-  'ebrithilar4867',
-  'CharlyFrancisco-f2e',
-  'NathanMansion',
-  'mariocolorGG',
-  'noe-yannck7168',
-  'fmed9079',
-  'SlyMax0fficial',
-  'hugoarnout-mc5mm',
-  'Sperliox',
-  'moooun35',
-  'celianhartmann',
-  'maybyxx',
-  'Narsa44',
-  'cesar-ej7gj',
-  'spidelac',
-  'xernas7880',
-  'univers579',
-  'sromaindu1693',
-  'Strylexio',
-  'JubinFR',
-  'Un_Skieur',
-  'mars_three_times',
-  'MrAnthonyFR2023',
-  'PogchaSync',
-  'Zephyr-mapper',
-  'Luminiox-mp4ek',
-  'ACA_23',
-  'tanhrs8711',
-  'Fird_blue',
-  'paulgoub01',
-  'momobabo50',
-  'filoutubs457',
-  'KyllH',
-  'Youssef-v8g',
-  'Pork_exo',
-  'notrix2391',
-  'FBS_Leon-officlie',
-  'UniversEnchante',
-  'sarahcroche8623',
-  'shikyoblood3058',
-  'matheocolson7710',
-  'KosayTwitch',
-  'julesrichard7058',
-  'MrSefyro',
-  'Mathon714',
-  'Albericbaboin',
-  'liloulap',
-  'unfairarena',
-  'The_Super_Musician',
-  'Shidoni-san',
-  'kayoucat6352',
-  'essapedtom9202',
-  'white-vortex',
-  'minotaurz962',
-  'supergames9777',
-  'saragnor7827',
-  'RealGalaxPro',
-  'SamFortems-w7p',
-  'Aydrek',
-  'dimbananox',
-  '',
-  'jaysuuun',
-  'reithaxe3310',
-  'coulebcalidou4442',
-  'haroldcastiaux959',
-  'ios-17-clock',
-  'merguezchipo5201',
-  'Flave-flaiy',
-  'Erwan-c7d',
-  'Zetfr_multi_gaming',
-  'lambdachaine',
-  'Arkstone-l4y',
-  'MrBeton-ok8dk',
-  'DodgyX',
-  'altF4_studio',
-  '13Mat54',
-  'ia-maxiweb-nc',
-  'super_games250',
-  'TimUiop59',
-  'valou6649',
-  'martin92-yt',
-  'gamepandastream8613',
-  'leunam3859',
-  'Azedka25',
-  'Aichanel-rs3oo',
-  'bozzoyann',
-  'Cincendu',
-  'Cafki_SpeedRun',
-  'Moicom-ll3ts',
-  'Draconix0',
-  'BleuJumper',
-  'BIBOUTEILLEetTTPR7',
-  'simonlouet1869',
-  'Esteban_lever',
-  'Saphyrose',
-  'thegamerx1564',
-  'Saw-fy3hz',
-  'emilegear5',
-  'Cubestructeur',
-  'Felbersig',
-  'computeurhuman6940',
-  'omnesalberic3960',
-  'Amizy',
-  'Celian_',
-  'ironnaej',
-  'Civicnote',
-  '5US69',
-  'purple_m0rse',
-  'killvearnd',
-  'chabanedahmani',
-  'captainlouvetot9487',
-  'DeterHope',
-  'faisault',
-  'thepieraless2391',
-  '2mat20lespectateur',
-  'pilouface8543',
-  'Nathan_Best',
-  'warillon',
-  'AyanokojivsLight',
-  'Oered',
-  'baptFulbion',
-  'moustafakhalil9779',
-  'bause6182',
-  '_Matiox_',
-  'fuzeblocks',
-  'oliver3607',
-  'totapplecraft9374',
-  'Adn-4',
-  'kissingcloper',
-  'KanaiiOff',
-  'nonoxo_scs3371',
-  'typeacier',
-  'loutre384',
-  'azertyi576',
-  'darckt_',
-  'quentinfouilleul2651',
-  'Vanstyxx',
-  'Monna_Solla',
-  'Lumouille',
-  'stanbee4356',
-  'modo_discord',
-  'axoudu711',
-  'XdragonZ51',
-  'Toyireu',
-  'sokssy',
-  'Meteotrance',
-  'MotivationZone-ub3iz',
-  'PeUrAnGe',
-  'fratxfight',
-  'Nartia9',
-  'Rouge_Backrooms',
-  'joandussauld9114',
-  'DEYROS',
-  'JCraftStar',
-  'crafting4182',
-  'zelriano36',
-  'LouisL77777',
-  'MaloCHEREL-tk6hd',
-  'Karmax_FN',
-  'marieoceane9052',
-  'meyrogames',
-  'KingCacaLeVrai',
-  'MickaëlZoé',
-  'Emixofficiel',
-  'gabri-hell5430',
-  'noansion6859',
-  'nalol2000',
-  'aqfreetoas',
-  'sir_200',
-  'MultiUniverseVideo',
-  'vaatidu73000',
-  'bubupackyt9616',
-  'D01Light',
-  'ClementClecle',
-  'Zazagara',
-  'dragon_jumper005',
-  'Jooxa-dd1by',
-  'simongauthier9178',
-  'SWAT828',
-  'Chigodelastar',
-  'OO77._',
-  'Peppychart',
-  'IMBATTABLEbs',
-  'valerykyungu',
-  'LegendSniper348',
-  'brindiboux',
-  'Tamada357',
-  'NeverNath27',
-  'Solaire-b6k',
-  'wawa44wawa44',
-  'jyhut_peace-and-love-pls',
-  'dieu_yo709',
-  'Alep512',
-  'gamerplayaxel_gamer7866',
-  'leogarmier1031',
-  'axoliquide2438',
-  'sharkogtag',
-  'Papaya_ppya999',
-  'lebgesti4802',
-  'Blocwarzeur',
-  'SketchsAndShot',
-  'YzeltoYtb',
-  'JacobQuelquun',
-  'DevPxll',
-  'CodingBill',
-  'PixelTriadFR',
-  'FlashPet',
-  'elzeraAOP',
-  'rorodu17s',
-  'faaaadoli',
-  'acoeur1229',
-  'rednox9233',
-  'r0de065',
-  'ornibys',
-  'phagegame',
-  'scoruluce',
-  'dr.p2021',
-  'cluexiii7049',
-  'Tachinosaure',
-  'baroudi.13',
-  'Migrag-g6k',
-  'vagadozz',
-  'vinz94',
-  'NotYouPasToi',
-  'Yannytb',
-  'LeVraiTomtom',
-  'mineron2109',
-  'abgache',
-  'blaiselegoat_officiel',
-  'WardekPerso',
-  'Monsieur_sms',
-  'Zd42',
-  'L-Veugore1',
-  'noctu7609',
-  'Alexis25090',
-  'NahosProduction',
-  'bibidu39.08',
-  'duty_aglouglou',
-  'NoéMARGUET',
-  'nicolasgoubin',
-  'Ghost_ozo',
-  'terrko',
-  'TogepiX',
-  'kuremantv9258',
-  'davidsiwek994',
-  'maxlego084',
-  'NoamRozen',
-  'macto3001',
-  'trynitia5341',
-  'Artemisfr2',
-  'dwayzi_1541',
-  'deltaclient4465',
-  'kiki_the_coocki2376',
-  'madycannizzaro1611',
-  'Link34500',
-  'inspecteurninja5877',
-  'wolfsay',
-  'YVE8k',
-  'muet.minecraft',
-  'Ebrithil1',
-  'yann8765',
-  'FastGeek-fn8tc',
-  'moshodai',
-  'Dexi_Le-Vrai',
-  'IntheFishtank',
-  'MussTruss',
-  'micuit-cuit2',
-  'mini_ice237',
-  'kiff_world',
-  'Benjamin-v2h3f',
-  'Fabien-cu4zz',
-  'summer7634',
-  'arsenal6400',
-  'Gabriel-f4w',
-  'reindutout',
-  'GeometryDash-q5e',
-  'mattmoncode',
-  'Skitch49',
-  'MathisMth-m9x',
-  'Misteryanis49',
-  'Reqeusson',
-  'oplmyt6495',
-  'Titouanr',
-  'jaidouer',
-  'NoxyCag14',
-  'MrPyrochimark',
-  'DamienNoblet-bd6bi',
-  'Flazer_x',
-  'battlesim2954',
-  'silveurfox-dx7bh',
-  'moustache_18lebg50',
-  'fer5five100',
-  'solgan_yt',
-  'Hedwardnewgat',
-  'Riptor451',
-  'Le_Lama',
-  'Ccrazy_Historyy',
-  'heaven6064',
-  'kenkaneki5437',
-  'julianhemmer1003',
-  'FRANKLEFRANK',
-  'mehdiazouz4119',
-  'mohamedlapouge2149',
-  'Karmax669',
-  'Cambriolomhobbit',
-  'synfuu4222',
-  'virusf5000',
-  'surviecrafteur',
-  'ThéoEmilie-c2t',
-  'sonicspinball2615',
-  'itu_idji',
-  'Glasarwax',
-  'Neon_321zzz',
-  'witters468',
-  'bike_n_fish',
-  'GatienMenard',
-  'fazerdino1',
-  'saurimyt',
-  'vanibelsdepsilon',
-  'AXELD912',
-  'andrepape9347',
-  'SerendipityOwens',
-  'Shinydragonscale',
-  'NhufOfficial',
-  'CheapNova',
-  'armand5',
-  'AMFUGO09',
-  'scipio9482',
-  'Tom-bacquet',
-  'steeredpoem',
-  'nathanberthet4952',
-  'Vivi-xn9iz',
-  'simonmago4',
-  'didierdidier-mm3hh',
-  'diatra_off',
-  'Dreguix',
-  'estebanqgb',
-  'tilelli_106',
-  'infocomeducifc3346',
-  'dewey8642',
-  'Hellounfnow',
-  'dr_phelix2326',
-  'Gamer_david1',
-  'Hamsteroux',
-  'BixBoxCraft',
-  'aboatinformatique8545',
-  'Ptipepit',
-  'akitain',
-  'Stonyx71',
-  'DrSkoff',
-  'huzzah_tv',
-  'Stogru0',
-  'The_Nieto',
-  'BayaBaya-rn4qw',
-  'lescratcheur2548',
-  'Sad_Gaming756',
-  'matiss_d_smile',
-  'maxtellon3067',
-  'permapold6943',
-  'Izaheal',
-  'Reider-ro6md',
-  'NatCode171',
-  'rayanis55',
-  'cadiougwenaelle2357',
-  'luma_haku',
-  'khorosenai',
-  'roucain78',
-  'OfficialPhantomix',
-  'dond989',
-  'Enak757',
-  'marvenoreo',
-  'Nir9420',
-  'Malo5659',
-  'WillRakov',
-  'zombar-ds',
-  'le.mouton',
-  'juliettecastel1381',
-  'iott_tcd',
-  'nati0_',
-  'Le_débile_avec_0_de_QI',
-  'Couleur_PQ',
-  'Kenzoni-n4e',
-  'guillaumeleclerc7666',
-  'vik3111',
-  'Purple_Prog',
-  'dorevarie',
-  'Danslabouchedesenfants',
-  'l.l6739',
-  'SN-lr9mg',
-  'Lapin_HCR2_188',
-  'fouderix',
-  'ITSRTRUE-xq5se',
-  'josianerochat9717',
-]
 
-const level = [
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
-  [7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 8],
-  [11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 5, 0, 5, 0, 5, 0, 5, 0, 5, 8, 1],
-  [3, 6, 0, 0, 0, 0, 0, 0, 0, 0, 12, 13, 13, 13, 13, 13, 13, 13, 13, 12, 0, 0, 5, 8, 5, 8, 5, 8, 5, 8, 5, 8, 1, 1],
-  [1, 1, 3, 3, 3, 3, 3, 3, 3, 3, 10, 14, 14, 14, 14, 14, 14, 14, 14, 10, 3, 3, 8, 1, 8, 1, 8, 1, 8, 1, 8, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 10, 2, 2, 2, 2, 2, 2, 2, 2, 10, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-]
-
-enum TileType {
-  classic = 'tiles/tile.png',
-  water = 'tiles/tile_water.png',
-  top = 'tiles/tile_top.png',
-  stone = 'tiles/tile_stone.png',
-  spikes = 'tiles/tile_spikes.png',
-  slope = 'tiles/tile_slope.png',
-  roof = 'tiles/tile_roof.png',
-  grass = 'tiles/tile_grass.png',
-  castle = 'tiles/tile_castle.png',
-  brick = 'tiles/tile_brick.png',
-  blockDoor = 'tiles/tile_blockDoor.png',
-  arch = 'tiles/tile_arch.png',
-  fence = 'tiles/tile_fence.png',
-  bridge = 'tiles/tile_bridge.png',
-}
-
-const tilesMatch: { [key: number]: TileType } = {
-  1: TileType.classic,
-  2: TileType.water,
-  3: TileType.top,
-  4: TileType.stone,
-  5: TileType.spikes,
-  6: TileType.slope,
-  7: TileType.roof,
-  8: TileType.grass,
-  9: TileType.castle,
-  10: TileType.brick,
-  11: TileType.blockDoor,
-  12: TileType.arch,
-  13: TileType.fence,
-  14: TileType.bridge,
-}
+const MIN_ARROW_SPEED = 1000
+const CHARGE_TIME_MS = 900
+const MIN_POWER = 0.2
+const BOW_PULLBACK = 14
+const BAR_WIDTH = 120
+const BAR_HEIGHT = 16
+const HIT_MARGIN = 10
+const TERRAIN_STEP = 12
+const TERRAIN_GRACE = 140
 
 export default class GameScene extends Phaser.Scene {
   private bow!: Phaser.GameObjects.Image
   private hero!: Phaser.GameObjects.Image
+  private heroBaseX = 0
+  private recoilTween?: Phaser.Tweens.Tween
+  private lastShotTime = 0
+  private ground!: Phaser.Physics.Arcade.StaticGroup
   private arrows!: Phaser.Physics.Arcade.Group
   private enemies!: Phaser.Physics.Arcade.Group
   private bloodEmitter!: Phaser.GameObjects.Particles.ParticleEmitter
@@ -527,6 +43,19 @@ export default class GameScene extends Phaser.Scene {
   private killsText!: Phaser.GameObjects.BitmapText
   private toastContainer!: Phaser.GameObjects.Container
   private killsToasts: Phaser.GameObjects.BitmapText[] = []
+  private sfx!: SoundManager
+  private settingsMenu!: SettingsMenu
+  private comboCount = 0
+  private comboTimer?: Phaser.Time.TimerEvent
+  private comboText!: Phaser.GameObjects.BitmapText
+  private gearIcon!: Phaser.GameObjects.Text
+  private clouds: Phaser.GameObjects.Image[] = []
+  private charging = false
+  private chargeStart = 0
+  private aimAngle = 0
+  private chargeBar!: Phaser.GameObjects.Graphics
+  private hitLine = new Phaser.Geom.Line()
+  private hitRect = new Phaser.Geom.Rectangle()
 
   constructor() {
     super({ key: SceneKey.Game })
@@ -534,38 +63,230 @@ export default class GameScene extends Phaser.Scene {
 
   init() {
     this.killsNumber = 0
+    this.comboCount = 0
+    this.killsToasts = []
+    this.recoilTween = undefined
+    this.comboTimer = undefined
+    this.lastShotTime = 0
+    this.clouds = []
+    this.charging = false
+    this.chargeStart = 0
+    this.aimAngle = 0
   }
 
   create() {
-    // Map
-    const ground = this.physics.add.staticGroup()
+    this.createMap()
+    this.createClouds()
+    this.createHero()
+    this.createEnemies()
+    this.createParticles()
+    this.createHud()
+
+    this.physics.add.collider(this.enemies, this.ground)
+
+    this.events.on('enemy-lost', this.onEnemyLost, this)
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.onShutdown, this)
+
+    this.input.once('pointerdown', () => {
+      this.sfx.resume()
+      this.sfx.startMusic()
+    })
+  }
+
+  update(time: number, delta: number) {
+    if (this.settingsMenu?.isOpen) {
+      if (this.charging) this.cancelCharge()
+      return
+    }
+
+    if (this.charging) this.updateCharge()
+
+    this.checkArrowHits()
+
+    if (!this.clouds || this.clouds.length === 0) return
+
+    const dt = delta / 1000
+
+    this.clouds.forEach(cloud => {
+      const speed = cloud.getData('speed') as number
+      cloud.x -= speed * dt
+
+      if (cloud.x < -cloud.displayWidth) {
+        cloud.x = this.scale.width + cloud.displayWidth
+        cloud.y = Phaser.Math.Between(50, 800)
+        cloud.setData('speed', Phaser.Math.FloatBetween(8, 120))
+        cloud.setScale(Phaser.Math.FloatBetween(0.8, 2))
+        cloud.setAlpha(Phaser.Math.FloatBetween(0.7, 1))
+      }
+    })
+  }
+
+  private onShutdown() {
+    this.events.off('enemy-lost', this.onEnemyLost, this)
+    this.input.off('pointermove', this.aim, this)
+    this.input.off('pointerdown', this.startCharge, this)
+    this.input.off('pointerup', this.releaseCharge, this)
+    this.input.off('pointerupoutside', this.releaseCharge, this)
+    this.comboTimer?.remove()
+    this.settingsMenu?.destroy()
+    this.sfx?.destroy()
+  }
+
+  private onEnemyLost(enemy: Enemy) {
+    this.time.delayedCall(
+      Phaser.Math.Between(RESPAWN_DELAY_MIN, RESPAWN_DELAY_MAX),
+      () => this.respawnEnemy(enemy)
+    )
+  }
+
+  private findTerrainHit(px: number, py: number, cx: number, cy: number) {
+    const dx = cx - px
+    const dy = cy - py
+    const dist = Math.hypot(dx, dy)
+    const steps = Math.max(1, Math.ceil(dist / TERRAIN_STEP))
+
+    for (let s = 1; s <= steps; s++) {
+      const t = s / steps
+      const x = px + dx * t
+      const y = py + dy * t
+      const bodies = this.physics.overlapRect(x - 3, y - 3, 6, 6, false, true)
+      if (bodies.length > 0) return { x, y }
+    }
+
+    return null
+  }
+
+  private checkArrowHits() {
+    const arrows = this.arrows.getChildren().slice() as Arrow[]
+    const enemies = this.enemies.getChildren() as Enemy[]
+
+    for (const arrow of arrows) {
+      if (!arrow.active) continue
+
+      const px = arrow.getData('px') as number | undefined
+      const py = arrow.getData('py') as number | undefined
+      const cx = arrow.x
+      const cy = arrow.y
+
+      if (px === undefined || py === undefined) {
+        arrow.setData('px', cx)
+        arrow.setData('py', cy)
+        continue
+      }
+
+      this.hitLine.setTo(px, py, cx, cy)
+
+      let target: Enemy | undefined
+      let best = Infinity
+
+      for (const enemy of enemies) {
+        if (!enemy.active || !enemy.visible) continue
+        const body = enemy.body as Phaser.Physics.Arcade.Body
+        if (!body || !body.enable) continue
+
+        this.hitRect.setTo(
+          body.x - HIT_MARGIN,
+          body.y - HIT_MARGIN,
+          body.width + HIT_MARGIN * 2,
+          body.height + HIT_MARGIN * 2
+        )
+
+        const hit =
+          Phaser.Geom.Rectangle.Contains(this.hitRect, cx, cy) ||
+          Phaser.Geom.Intersects.LineToRectangle(this.hitLine, this.hitRect)
+
+        if (!hit) continue
+
+        const d = (enemy.x - px) * (enemy.x - px) + (enemy.y - py) * (enemy.y - py)
+        if (d < best) {
+          best = d
+          target = enemy
+        }
+      }
+
+      const sx = (arrow.getData('sx') as number | undefined) ?? px
+      const sy = (arrow.getData('sy') as number | undefined) ?? py
+      const farEnough = Math.hypot(cx - sx, cy - sy) > TERRAIN_GRACE
+
+      let terrain: { x: number; y: number } | null = null
+      if (farEnough) terrain = this.findTerrainHit(px, py, cx, cy)
+
+      if (terrain && target) {
+        const td = (terrain.x - px) * (terrain.x - px) + (terrain.y - py) * (terrain.y - py)
+        if (td < best) target = undefined
+        else terrain = null
+      }
+
+      if (target) {
+        this.handleKill(arrow, target)
+      } else if (terrain) {
+        this.createImpact(terrain.x, terrain.y)
+        arrow.destroy()
+      } else {
+        arrow.setData('px', cx)
+        arrow.setData('py', cy)
+      }
+    }
+  }
+
+  private createImpact(x: number, y: number) {
+    for (let i = 0; i < 6; i++) {
+      const angle = Phaser.Math.FloatBetween(0, Math.PI * 2)
+      const p = this.add.circle(x, y, 3, 0x8a8a8a)
+      this.tweens.add({
+        targets: p,
+        x: x + Math.cos(angle) * Phaser.Math.Between(15, 40),
+        y: y + Math.sin(angle) * Phaser.Math.Between(15, 40),
+        alpha: 0,
+        scale: 0,
+        duration: 250,
+        ease: 'Power2',
+        onComplete: () => p.destroy(),
+      })
+    }
+  }
+
+  private spawnX() {
+    const w = this.scale.width
+    return Phaser.Math.Between(Math.round(w * 0.684), Math.round(w * 0.929))
+  }
+
+  private spawnY() {
+    return Phaser.Math.Between(300, 800)
+  }
+
+  private tileAt(i: number, j: number) {
+    const row = level[Math.min(i, level.length - 1)]
+    const id = row[Math.min(j, row.length - 1)]
+    if (i >= level.length && id === 2) return 1
+    return id
+  }
+
+  private createMap() {
+    this.ground = this.physics.add.staticGroup()
     const water = this.physics.add.staticGroup()
-
-    this.arrows = this.physics.add.group({
-      classType: Arrow,
-      runChildUpdate: true,
-    })
-    this.enemies = this.physics.add.group({
-      classType: Enemy,
-      runChildUpdate: true,
-    })
-
+    const step = TILE_SIZE - TILE_OVERLAP_OFFSET
+    const cols = Math.ceil(this.scale.width / step) + 1
+    const rows = Math.ceil(this.scale.height / step)
     let waterIndex = 0
-    for (let i = 0; i < level.length; i++) {
-      for (let j = 0; j < level[0].length; j++) {
-        if (level[i][j] === 0) continue
-        const isWater = level[i][j] === 2
-        const group = isWater ? water : ground
+
+    for (let i = 0; i < rows; i++) {
+      for (let j = 0; j < cols; j++) {
+        const tileId = this.tileAt(i, j)
+        if (tileId === 0) continue
+
+        const isWater = tileId === 2
+        const group = isWater ? water : this.ground
         const tile = group.create(
           j * TILE_SIZE - TILE_OVERLAP_OFFSET * j,
           i * TILE_SIZE - TILE_OVERLAP_OFFSET * i,
           TextureKey.Sprite,
-          tilesMatch[level[i][j]]
-        )
-        group.setOrigin(0)
+          tilesMatch[tileId]
+        ) as Phaser.Physics.Arcade.Sprite
+        tile.setOrigin(0)
 
         if (isWater) {
-          tile.y = tile.y + 4
+          tile.y += 4
           this.tweens.add({
             targets: tile,
             y: tile.y + 20,
@@ -576,81 +297,62 @@ export default class GameScene extends Phaser.Scene {
             delay: waterIndex * 200,
           })
           waterIndex++
+        } else {
+          tile.refreshBody()
         }
       }
     }
+  }
 
-    // Cloud
-    const cloudsPos = [
-      { x: 200, y: 500 },
-      { x: 400, y: 600 },
-      { x: 800, y: 400 },
-      { x: 1100, y: 500 },
-      { x: 1680, y: 440 },
-    ]
+  private createClouds() {
+    const cloudCount = Math.round(35 * (this.scale.width / 2046))
 
-    for (let i = 0; i < cloudsPos.length; i++) {
-      const cloud = this.add.image(cloudsPos[i].x, cloudsPos[i].y, i % 2 === 0 ? TextureKey.Cloud1 : TextureKey.Cloud2)
-      const timeline = this.add.timeline([
-        {
-          at: 0,
-          tween: {
-            targets: cloud,
-            x: Phaser.Math.Between(cloud.x - 20, cloud.x + 20),
-            y: Phaser.Math.Between(cloud.y - 20, cloud.y + 20),
-            duration: 2000,
-          },
-        },
-        {
-          at: 2000,
-          tween: {
-            targets: cloud,
-            x: Phaser.Math.Between(cloud.x - 20, cloud.x + 20),
-            y: Phaser.Math.Between(cloud.y - 20, cloud.y + 20),
-            duration: 2000,
-          },
-        },
-        {
-          at: 4000,
-          tween: {
-            targets: cloud,
-            x: Phaser.Math.Between(cloud.x - 20, cloud.x + 20),
-            y: Phaser.Math.Between(cloud.y - 20, cloud.y + 20),
-            duration: 2000,
-          },
-        },
-        {
-          at: 6000,
-          stop: true,
-        },
-      ])
+    for (let i = 0; i < cloudCount; i++) {
+      const x = Phaser.Math.Between(0, this.scale.width)
+      const y = Phaser.Math.Between(50, 800)
+      const texture = i % 2 === 0 ? TextureKey.Cloud1 : TextureKey.Cloud2
 
-      timeline.repeat().play()
+      const scale = Phaser.Math.FloatBetween(0.8, 2)
+      const alpha = Phaser.Math.FloatBetween(0.7, 1)
+
+      const cloud = this.add.image(x, y, texture)
+        .setScale(scale)
+        .setAlpha(alpha)
+        .setDepth(-1)
+
+      cloud.setData('speed', Phaser.Math.FloatBetween(8, 120))
+      this.clouds.push(cloud)
     }
+  }
 
-    // Hero
+  private createHero() {
     this.hero = this.add.image(160, 1286, TextureKey.Hero).setOrigin(0.5, 0.5)
+    this.heroBaseX = this.hero.x
     this.bow = this.add.image(205, 1286, TextureKey.Bow).setOrigin(0.5, 0.5)
-
+    this.chargeBar = this.add.graphics().setDepth(50)
     this.input.on('pointermove', this.aim, this)
-    this.input.on('pointerdown', this.shoot, this)
+    this.input.on('pointerdown', this.startCharge, this)
+    this.input.on('pointerup', this.releaseCharge, this)
+    this.input.on('pointerupoutside', this.releaseCharge, this)
+  }
 
-    // Enemies
-    for (let i = 0; i < coms.length; i++) {
-      const enemy = this.enemies.getFirstDead(
-        true,
-        Phaser.Math.Between(1400, 1900),
-        Phaser.Math.Between(600, 1000)
-      ) as Enemy
+  private createEnemies() {
+    this.arrows = this.physics.add.group({ classType: Arrow, runChildUpdate: true })
+    this.enemies = this.physics.add.group({ classType: Enemy, runChildUpdate: true })
+
+    for (let i = 0; i < MAX_ENEMIES; i++) {
+      const enemy = this.enemies.getFirstDead(true, this.spawnX(), this.spawnY()) as Enemy
       enemy.color = Phaser.Math.Between(1, 4)
-      enemy.pseudo = coms[i]
+      enemy.pseudo = randomCom()
     }
+  }
 
-    // Particles
-    const graphics = this.make.graphics()
-    graphics.fillStyle(0xff004d)
-    graphics.fillRect(0, 0, 10, 10)
-    graphics.generateTexture('blood', 10, 10)
+  private createParticles() {
+    const g = this.make.graphics({}, false)
+    g.fillStyle(0xff004d)
+    g.fillRect(0, 0, 10, 10)
+    g.generateTexture('blood', 10, 10)
+    g.destroy()
 
     this.bloodEmitter = this.add.particles(0, 0, 'blood', {
       speed: { min: -200, max: 200 },
@@ -660,11 +362,9 @@ export default class GameScene extends Phaser.Scene {
       gravityY: 400,
       quantity: 30,
     })
+  }
 
-    // Collisions
-    this.physics.add.overlap(this.arrows, this.enemies, this.handleKill, undefined, this)
-
-    // HUD
+  private createHud() {
     this.killsText = this.add.bitmapText(
       64,
       64,
@@ -672,70 +372,252 @@ export default class GameScene extends Phaser.Scene {
       `Kills: ${this.killsNumber.toString().padStart(4, '0')}`,
       48
     )
-    this.toastContainer = this.add.container(this.hero.x - 20, this.hero.y - 140)
+    this.toastContainer = this.add.container(this.heroBaseX - 20, this.hero.y - 140)
+
+    this.comboText = this.add
+      .bitmapText(this.scale.width / 2, 80, TextureKey.Font, '', 48)
+      .setOrigin(0.5)
+      .setVisible(false)
+
+    this.sfx = new SoundManager()
+    this.settingsMenu = new SettingsMenu(this, this.sfx)
+
+    this.gearIcon = this.add.text(this.scale.width - 60, 60, '\uf013', {
+      fontFamily: '"Font Awesome 6 Free"',
+      fontSize: '48px',
+      color: '#000000',
+      fontStyle: '900'
+    })
+    .setOrigin(0.5)
+    .setDepth(200)
+    .setInteractive({ useHandCursor: true })
+    .on('pointerover', () => this.gearIcon.setColor('#ff0000'))
+    .on('pointerout', () => this.gearIcon.setColor('#000000'))
+    .on('pointerdown', () => this.settingsMenu.toggle())
   }
 
-  aim(pointer: Phaser.Input.Pointer) {
-    if (pointer.x < this.hero.x || pointer.y > this.hero.y) return
-
-    const angle = Phaser.Math.Angle.Between(this.bow.x, this.bow.y, pointer.x, pointer.y)
-    const constrainedAngle = Phaser.Math.Clamp(angle, -Math.PI / 2, 0)
-    this.bow.setRotation(constrainedAngle)
-
-    this.bow.x = this.hero.x + 40 * Math.cos(angle)
-    this.bow.y = this.hero.y + 40 * Math.sin(angle)
+  private getPower() {
+    const t = Phaser.Math.Clamp((this.time.now - this.chargeStart) / CHARGE_TIME_MS, 0, 1)
+    return MIN_POWER + (1 - MIN_POWER) * t
   }
 
-  shoot(pointer: Phaser.Input.Pointer) {
-    if (pointer.x < this.hero.x || pointer.y > this.hero.y) return
+  private placeBow(angle: number, pullback: number) {
+    const dist = 40 - pullback
+    this.bow.setRotation(angle)
+    this.bow.x = this.heroBaseX + dist * Math.cos(angle)
+    this.bow.y = this.hero.y + dist * Math.sin(angle)
+  }
 
-    const angle = Phaser.Math.Angle.Between(this.bow.x, this.bow.y, pointer.x, pointer.y)
-    const arrow = this.arrows.get(this.hero.x, this.hero.y, TextureKey.Arrow) as Phaser.Physics.Arcade.Image
+  private aim(pointer: Phaser.Input.Pointer) {
+    if (this.settingsMenu?.isOpen) return
+    if (pointer.x < this.heroBaseX || pointer.y > this.hero.y) return
 
+    const angle = Phaser.Math.Angle.Between(this.heroBaseX, this.hero.y, pointer.x, pointer.y)
+    this.aimAngle = Phaser.Math.Clamp(angle, -Math.PI / 2, 0)
+    const pullback = this.charging ? BOW_PULLBACK * this.getPower() : 0
+    this.placeBow(this.aimAngle, pullback)
+  }
+
+  private startCharge(pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) {
+    if (currentlyOver && currentlyOver.length > 0) return
+    if (this.settingsMenu?.isOpen) return
+    if (pointer.x < this.heroBaseX || pointer.y > this.hero.y) return
+
+    this.aim(pointer)
+    this.charging = true
+    this.chargeStart = this.time.now
+    this.sfx.resume()
+  }
+
+  private updateCharge() {
+    const power = this.getPower()
+    this.placeBow(this.aimAngle, BOW_PULLBACK * power)
+
+    const c = Phaser.Display.Color.Interpolate.ColorWithColor(
+      new Phaser.Display.Color(55, 217, 140),
+      new Phaser.Display.Color(252, 92, 101),
+      100,
+      Math.round(power * 100)
+    )
+    const color = Phaser.Display.Color.GetColor(c.r, c.g, c.b)
+
+    const x = this.heroBaseX - BAR_WIDTH / 2
+    const y = this.hero.y - 100
+
+    this.chargeBar.clear()
+    this.chargeBar.fillStyle(0xffffff, 1)
+    this.chargeBar.fillRoundedRect(x, y, BAR_WIDTH, BAR_HEIGHT, 8)
+    this.chargeBar.fillStyle(color, 1)
+    this.chargeBar.fillRoundedRect(x, y, Math.max(12, BAR_WIDTH * power), BAR_HEIGHT, 8)
+    this.chargeBar.lineStyle(3, 0x000000, 1)
+    this.chargeBar.strokeRoundedRect(x, y, BAR_WIDTH, BAR_HEIGHT, 8)
+  }
+
+  private cancelCharge() {
+    this.charging = false
+    this.chargeBar.clear()
+    this.placeBow(this.aimAngle, 0)
+  }
+
+  private releaseCharge() {
+    if (!this.charging) return
+
+    const power = this.getPower()
+    this.cancelCharge()
+
+    if (this.settingsMenu?.isOpen) return
+
+    const now = this.time.now
+    if (now - this.lastShotTime < SHOOT_COOLDOWN_MS) return
+
+    const arrow = this.arrows.get(this.heroBaseX, this.hero.y, TextureKey.Arrow) as Phaser.Physics.Arcade.Image
     if (!arrow) return
+
+    this.lastShotTime = now
+
+    this.sfx.resume()
+    this.sfx.shoot()
+
+    const speed = MIN_ARROW_SPEED + (ARROW_SPEED - MIN_ARROW_SPEED) * power
 
     arrow.setActive(true)
     arrow.setVisible(true)
-    arrow.setRotation(angle)
-    this.physics.velocityFromRotation(angle, ARROW_SPEED, arrow.body!.velocity)
+    arrow.setRotation(this.aimAngle)
+    arrow.setData('px', this.heroBaseX)
+    arrow.setData('py', this.hero.y)
+    arrow.setData('sx', this.heroBaseX)
+    arrow.setData('sy', this.hero.y)
+    this.physics.velocityFromRotation(this.aimAngle, speed, arrow.body!.velocity)
+
+    this.createMuzzleFlash(power)
+    this.recoilHero(power)
   }
 
-  handleKill: Phaser.Types.Physics.Arcade.ArcadePhysicsCallback = (arrow: any, enemy: any) => {
+  private createMuzzleFlash(power: number) {
+    const flash = this.add.circle(this.bow.x, this.bow.y, 8 + 10 * power, 0xffdd00)
+    this.tweens.add({ targets: flash, scale: 0, alpha: 0, duration: 100, onComplete: () => flash.destroy() })
+  }
+
+  private recoilHero(power: number) {
+    this.recoilTween?.remove()
+    this.hero.x = this.heroBaseX
+    this.recoilTween = this.tweens.add({
+      targets: this.hero,
+      x: this.heroBaseX + 3 + 5 * power,
+      duration: 50,
+      yoyo: true,
+      ease: 'Power2',
+      onComplete: () => {
+        this.hero.x = this.heroBaseX
+        this.recoilTween = undefined
+      },
+    })
+  }
+
+  private respawnEnemy(enemy: Enemy) {
+    if (!enemy.scene) return
+
+    const x = this.spawnX()
+    const y = this.spawnY()
+
+    this.tweens.killTweensOf(enemy)
+    enemy.setScale(1)
+    enemy.setAlpha(1)
+    enemy.setPosition(x, y)
+    enemy.setActive(true)
+    enemy.setVisible(true)
+
+    const body = enemy.body as Phaser.Physics.Arcade.Body
+    body.enable = true
+    body.reset(x, y)
+    body.setVelocity(0, 0)
+
+    enemy.setNextJumpY()
+    enemy.color = Phaser.Math.Between(1, 4)
+    enemy.pseudo = randomCom()
+  }
+
+  private handleKill(arrow: Phaser.GameObjects.GameObject, enemy: Enemy) {
+    if (!enemy.active) return
+
     this.bloodEmitter.emitParticleAt(enemy.x, enemy.y)
     arrow.destroy()
-    ;(enemy as Enemy).kill()
+    enemy.kill()
+
+    this.sfx.hit()
+    this.sfx.kill()
+    this.registerKill()
+
+    this.createHitSpark(enemy.x, enemy.y)
+    this.spawnFloatingText(enemy.x, enemy.y - 40, `+${this.comboCount}`, colors[enemy.color - 1])
+
     this.killsNumber++
     this.killsText.setText(`Kills: ${this.killsNumber.toString().padStart(4, '0')}`)
-
-    // Show kill info
     this.addToast(enemy)
-    // const killText = this.add
-    //   .bitmapText(0, 0, TextureKey.Font, `Anawan *killed* ${enemy.pseudo}`, 24)
-    //   .setCharacterTint(16, -1, true, colors[enemy.color - 1])
-    // const killInfo = this.add.container(this.hero.x - 20, this.hero.y - 140, killText)
-    // this.tweens.add({
-    //   targets: killInfo,
-    //   alpha: 0,
-    //   y: '-=40',
-    //   duration: 1000,
-    // })
 
-    // Show com
-    // const comText = this.add.text(0, 0, enemy.com, {
-    //   fontFamily: 'Arial',
-    //   fontSize: '24px',
-    //   color: '#000000',
-    //   wordWrap: { width: 800 },
-    // })
-    // const comInfo = this.add.container(this.hero.x - 20, this.hero.y - 600, comText)
-    // this.tweens.add({
-    //   targets: comInfo,
-    //   alpha: 0,
-    //   duration: 1500,
-    // })
+    this.time.delayedCall(
+      Phaser.Math.Between(RESPAWN_DELAY_MIN, RESPAWN_DELAY_MAX),
+      () => this.respawnEnemy(enemy)
+    )
   }
 
-  addToast(enemy: Enemy) {
+  private registerKill() {
+    this.comboCount++
+    this.comboTimer?.remove()
+    this.comboTimer = this.time.delayedCall(2000, () => this.resetCombo())
+    this.updateComboDisplay()
+    if (this.comboCount >= 3) this.sfx.combo(this.comboCount)
+  }
+
+  private resetCombo() {
+    this.comboCount = 0
+    this.comboText.setVisible(false)
+  }
+
+  private updateComboDisplay() {
+    if (this.comboCount < 2) {
+      this.comboText.setVisible(false)
+      return
+    }
+    this.tweens.killTweensOf(this.comboText)
+    this.comboText
+      .setVisible(true)
+      .setText(`COMBO x${this.comboCount}`)
+      .setTint(colors[(this.comboCount - 2) % colors.length])
+      .setScale(1.4)
+    this.tweens.add({ targets: this.comboText, scale: 1, duration: 200, ease: 'Back.easeOut' })
+  }
+
+  private createHitSpark(x: number, y: number) {
+    for (let i = 0; i < 10; i++) {
+      const angle = (i / 10) * Math.PI * 2
+      const spark = this.add.circle(x, y, 3, 0xffffff)
+      this.tweens.add({
+        targets: spark,
+        x: x + Math.cos(angle) * Phaser.Math.Between(30, 60),
+        y: y + Math.sin(angle) * Phaser.Math.Between(30, 60),
+        alpha: 0,
+        scale: 0,
+        duration: 300,
+        ease: 'Power2',
+        onComplete: () => spark.destroy(),
+      })
+    }
+  }
+
+  private spawnFloatingText(x: number, y: number, text: string, color: number) {
+    const t = this.add.bitmapText(x, y, TextureKey.Font, text, 32).setOrigin(0.5).setTint(color)
+    this.tweens.add({
+      targets: t,
+      y: y - 60,
+      alpha: 0,
+      duration: 700,
+      ease: 'Power2',
+      onComplete: () => t.destroy(),
+    })
+  }
+
+  private addToast(enemy: Enemy) {
     const toast = this.add
       .bitmapText(0, 0, TextureKey.Font, `Anawan *killed* ${enemy.pseudo}`, 24)
       .setCharacterTint(16, -1, true, colors[enemy.color - 1])
@@ -749,17 +631,17 @@ export default class GameScene extends Phaser.Scene {
       duration: 2000,
       onComplete: () => {
         toast.destroy()
-        this.killsToasts.shift()
+        const idx = this.killsToasts.indexOf(toast)
+        if (idx !== -1) this.killsToasts.splice(idx, 1)
         this.positionToasts()
       },
     })
   }
 
-  positionToasts() {
+  private positionToasts() {
     let currentY = 0
     for (let i = this.killsToasts.length - 1; i >= 0; i--) {
-      const toast = this.killsToasts[i]
-      toast.setPosition(0, -currentY)
+      this.killsToasts[i].setPosition(0, -currentY)
       currentY += 24 + 16
     }
   }

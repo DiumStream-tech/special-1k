@@ -1,0 +1,33 @@
+export enum TileType {
+  classic = 'tiles/tile.png',
+  water = 'tiles/tile_water.png',
+  top = 'tiles/tile_top.png',
+  stone = 'tiles/tile_stone.png',
+  spikes = 'tiles/tile_spikes.png',
+  slope = 'tiles/tile_slope.png',
+  roof = 'tiles/tile_roof.png',
+  grass = 'tiles/tile_grass.png',
+  castle = 'tiles/tile_castle.png',
+  brick = 'tiles/tile_brick.png',
+  blockDoor = 'tiles/tile_blockDoor.png',
+  arch = 'tiles/tile_arch.png',
+  fence = 'tiles/tile_fence.png',
+  bridge = 'tiles/tile_bridge.png',
+}
+
+export const tilesMatch: Record<number, TileType> = {
+  1: TileType.classic,
+  2: TileType.water,
+  3: TileType.top,
+  4: TileType.stone,
+  5: TileType.spikes,
+  6: TileType.slope,
+  7: TileType.roof,
+  8: TileType.grass,
+  9: TileType.castle,
+  10: TileType.brick,
+  11: TileType.blockDoor,
+  12: TileType.arch,
+  13: TileType.fence,
+  14: TileType.bridge,
+}
